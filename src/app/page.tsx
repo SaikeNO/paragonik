@@ -4,8 +4,11 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleLogin() {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
     const res = await fetch("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ login }),
@@ -14,23 +17,28 @@ export default function LoginPage() {
     if (res.ok) {
       window.location.href = "/receipts";
     } else {
-      alert("Błąd logowania");
+      const data = await res.json();
+      setError(data.error || "Wystąpił błąd");
     }
   }
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <h1 className="text-2xl font-bold">Logowanie</h1>
-      <input
-        type="text"
-        placeholder="Login"
-        value={login}
-        onChange={(e) => setLogin(e.target.value)}
-        className="border p-2"
-      />
-      <button onClick={handleLogin} className="bg-blue-600 text-white px-4 py-2">
-        Zaloguj
-      </button>
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h1 className="text-2xl font-bold mb-4">Logowanie</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Login"
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
+          className="border p-2 w-full mb-4"
+          required
+        />
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded w-full">
+          Zaloguj
+        </button>
+        {error && <p className="text-red-600 mt-2">{error}</p>}
+      </form>
     </div>
   );
 }

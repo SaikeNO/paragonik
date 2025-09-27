@@ -16,7 +16,7 @@ model User {
 model Receipt {
   id        String    @id @default(cuid())
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   fileUrl   String?
   date      DateTime
   tags      Tag[]     @relation("ReceiptTags")
@@ -28,7 +28,7 @@ model Item {
   id        String   @id @default(cuid())
   name      String
   receiptId String
-  receipt   Receipt  @relation(fields: [receiptId], references: [id])
+  receipt   Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
