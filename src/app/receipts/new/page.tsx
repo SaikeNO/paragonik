@@ -3,6 +3,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Tag } from "@/interfaces/interfaces";
+import {
+  Upload,
+  Calendar,
+  ShoppingCart,
+  Tag as TagIcon,
+  Plus,
+  X,
+  ArrowLeft,
+  FileText,
+  Check,
+  Trash2,
+} from "lucide-react";
 
 export default function NewReceiptPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -13,6 +25,7 @@ export default function NewReceiptPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState("");
   const [showNewTagInput, setShowNewTagInput] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   // Pobierz dostępne tagi przy załadowaniu komponentu
@@ -71,9 +84,11 @@ export default function NewReceiptPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     if (!file) {
       setError("Wybierz plik");
+      setIsSubmitting(false);
       return;
     }
 
@@ -97,175 +112,269 @@ export default function NewReceiptPage() {
       }
     } catch {
       setError("Wystąpił błąd podczas wysyłania");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="max-w-xl mx-auto">
-      <div className="flex justify-between items-center gap-2 mb-4">
-        <h1 className="text-2xl font-bold ">Dodaj paragon</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={() => router.back()}>
-          Anuluj
-        </button>
-      </div>
-      <form onSubmit={handleSubmit}>
-        {/* Pole pliku */}
-        <div className="mb-4">
-          <label className="font-bold mb-2 block">Plik paragonu:</label>
-          <input
-            type="file"
-            accept="image/*,.pdf"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="border p-2 w-full rounded"
-            required
-          />
-        </div>
-
-        {/* Pole daty */}
-        <div className="mb-4">
-          <label className="font-bold mb-2 block">Data paragonu:</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="border p-2 w-full rounded"
-            required
-          />
-        </div>
-
-        {/* Pozycje paragonu */}
-        <div className="mb-4">
-          <label className="font-bold mb-2 block">Pozycje paragonu:</label>
-          {items.map((item, idx) => (
-            <div key={idx} className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={item}
-                onChange={(e) => handleItemChange(idx, e.target.value)}
-                placeholder={`Pozycja ${idx + 1}`}
-                className="border p-2 flex-1 rounded"
-              />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Dodaj paragon</h1>
+                  <p className="text-blue-100 text-sm">Wypełnij poniższe pola aby dodać nowy paragon</p>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={() => removeItemField(idx)}
-                className="bg-red-500 text-white px-2 rounded hover:bg-red-600"
-                disabled={items.length === 1}
+                onClick={() => router.back()}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm"
               >
-                Usuń
+                <ArrowLeft className="w-4 h-4" />
+                Anuluj
               </button>
             </div>
-          ))}
-          <div className="flex justify-center mt-2">
-            <button
-              type="button"
-              onClick={addItemField}
-              className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
-            >
-              Dodaj pozycję
-            </button>
           </div>
         </div>
 
-        {/* Sekcja tagów */}
-        <div className="mb-4">
-          <label className="font-bold mb-2 block">Tagi:</label>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Plik */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Upload className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-800">Plik paragonu</h2>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="file-upload"
+                  required
+                />
+                <label htmlFor="file-upload" className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
+                  Kliknij aby wybrać plik
+                </label>
+                <p className="text-sm text-gray-500 mt-1">lub przeciągnij i upuść</p>
+                {file && (
+                  <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800 font-medium">{file.name}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-          {/* Wybrane tagi */}
-          {selectedTags.length > 0 && (
-            <div className="mb-3">
-              <p className="text-sm text-gray-600 mb-2">Wybrane tagi:</p>
-              <div className="flex flex-wrap gap-2">
-                {selectedTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm flex items-center gap-1"
-                  >
-                    {tag}
+          {/* Data */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-800">Data zakupu</h2>
+              </div>
+            </div>
+            <div className="p-6">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Produkty */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ShoppingCart className="w-5 h-5 text-gray-600" />
+                  <h2 className="text-lg font-semibold text-gray-800">Produkty</h2>
+                </div>
+                <span className="text-sm text-gray-500">{items.filter((i) => i.trim()).length} pozycji</span>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-3">
+                {items.map((item, idx) => (
+                  <div key={idx} className="flex gap-3">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) => handleItemChange(idx, e.target.value)}
+                        placeholder={`Nazwa produktu ${idx + 1}`}
+                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
                     <button
                       type="button"
-                      onClick={() => removeSelectedTag(tag)}
-                      className="text-blue-600 hover:text-blue-800 font-bold"
+                      onClick={() => removeItemField(idx)}
+                      disabled={items.length === 1}
+                      className="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      ×
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                  </span>
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Dostępne tagi */}
-          {availableTags.length > 0 && (
-            <div className="mb-3">
-              <p className="text-sm text-gray-600 mb-2">Dostępne tagi:</p>
-              <div className="flex flex-wrap gap-2">
-                {availableTags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => toggleTag(tag.name)}
-                    className={`px-2 py-1 rounded text-sm border transition-colors ${
-                      selectedTags.includes(tag.name)
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                    }`}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Dodawanie nowego tagu */}
-          <div className="mt-3">
-            {!showNewTagInput ? (
               <button
                 type="button"
-                onClick={() => setShowNewTagInput(true)}
-                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                onClick={addItemField}
+                className="mt-4 w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-green-400 hover:text-green-600 transition-colors"
               >
-                + Dodaj nowy tag
+                <Plus className="w-4 h-4" />
+                Dodaj kolejny produkt
               </button>
-            ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newTagInput}
-                  onChange={(e) => setNewTagInput(e.target.value)}
-                  placeholder="Nazwa nowego tagu"
-                  className="border p-2 flex-1 rounded text-sm"
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addNewTag())}
-                />
-                <button
-                  type="button"
-                  onClick={addNewTag}
-                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                >
-                  Dodaj
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowNewTagInput(false);
-                    setNewTagInput("");
-                  }}
-                  className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
-                >
-                  Anuluj
-                </button>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Przycisk wysyłania */}
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
-          Dodaj paragon
-        </button>
+          {/* Tagi */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <TagIcon className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-800">Tagi</h2>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              {/* Wybrane tagi */}
+              {selectedTags.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-3">Wybrane tagi:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedTag(tag)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {error && <p className="text-red-600 mt-2">{error}</p>}
-      </form>
+              {/* Dostępne tagi */}
+              {availableTags.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-3">Dostępne tagi:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.name)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                          selectedTags.includes(tag.name)
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dodawanie nowego tagu */}
+              <div className="pt-4 border-t border-gray-200">
+                {!showNewTagInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewTagInput(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Dodaj nowy tag
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      placeholder="Nazwa nowego tagu"
+                      className="flex-1 p-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addNewTag())}
+                    />
+                    <button
+                      type="button"
+                      onClick={addNewTag}
+                      className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewTagInput(false);
+                        setNewTagInput("");
+                      }}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Przycisk submit */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Dodawanie...
+                </>
+              ) : (
+                <>
+                  <Check className="w-5 h-5" />
+                  Dodaj paragon
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Błąd */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <p className="text-red-600 font-medium flex items-center gap-2">
+                <X className="w-5 h-5" />
+                {error}
+              </p>
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }
