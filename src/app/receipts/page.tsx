@@ -82,14 +82,11 @@ export default function ReceiptsPage() {
                   <div className="flex items-center gap-3">
                     <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                     <h2 className="text-base sm:text-lg font-semibold text-gray-800">
-                      <span className="hidden sm:inline">Wyniki </span>
+                      Wyniki &nbsp;
                       {filtered.length !== receipts.length && (
                         <span className="text-sm sm:text-base">
                           ({filtered.length} z {receipts.length})
                         </span>
-                      )}
-                      {filtered.length === receipts.length && (
-                        <span className="text-sm sm:text-base sm:hidden">({receipts.length})</span>
                       )}
                     </h2>
                   </div>
