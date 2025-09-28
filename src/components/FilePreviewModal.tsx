@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Eye, X, ZoomIn, ZoomOut, RotateCw, Download, Share2 } from "lucide-react";
-import Image from "next/image";
 
 interface FilePreviewModalProps {
   isOpen: boolean;
@@ -10,11 +9,11 @@ interface FilePreviewModalProps {
 }
 
 export default function FilePreviewModal({ isOpen, onClose, fileUrl, title }: FilePreviewModalProps) {
+  fileUrl = `/api/receipts/upload?id=${fileUrl}`;
   const [imageScale, setImageScale] = useState(1);
   const [imageRotation, setImageRotation] = useState(0);
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
-  const imageRef = useRef<HTMLImageElement>(null);
 
   function getFileType(fileUrl: string) {
     const extension = fileUrl.split(".").pop()?.toLowerCase();
@@ -199,8 +198,8 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, title }: Fi
               className="w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
               style={{ touchAction: imageScale > 1 ? "none" : "auto" }}
             >
-              <Image
-                ref={imageRef}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={fileUrl}
                 alt="Podgląd paragonu"
                 width={800}
@@ -211,8 +210,6 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, title }: Fi
                   maxWidth: imageScale <= 1 ? "100%" : "none",
                   maxHeight: imageScale <= 1 ? "100%" : "none",
                 }}
-                draggable={false}
-                priority
               />
             </div>
           )}

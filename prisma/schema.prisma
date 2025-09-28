@@ -21,7 +21,7 @@ model Receipt {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fileUrl   String?
+  fileUrl   String
   date      DateTime
   tags      Tag[]     @relation("ReceiptTags")
   items     Item[]

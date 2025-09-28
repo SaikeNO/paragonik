@@ -42,7 +42,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     // Usuń plik z systemu plików (jeśli istnieje)
     if (receipt.fileUrl) {
       try {
-        const filePath = path.join(process.cwd(), "public", receipt.fileUrl);
+        const filePath = path.join(process.cwd(), "public", "uploads", receipt.fileUrl);
         await unlink(filePath);
         console.log("Plik został usunięty z dysku");
       } catch (fileError) {

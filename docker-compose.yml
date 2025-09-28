@@ -22,6 +22,8 @@ services:
     volumes:
       # Mapuje lokalny katalog 'prisma' na katalog '/app/prisma' w kontenerze
       - ./prisma:/app/prisma
+      # Mapuje lokalny katalog 'public/uploads' na katalog '/app/public/uploads' w kontenerze
+      - ./public/uploads:/app/public/uploads
 
 # Definicja woluminów (opcjonalnie, dla lepszego zarządzania)
 volumes:

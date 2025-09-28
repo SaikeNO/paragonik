@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { getSession } from "@/lib/auth";
+import { stat, createReadStream } from "fs";
+import { promisify } from "util";
+
+const statPromise = promisify(stat);
 
 // Konfiguracja walidacji plików
 const FILE_CONFIG = {
@@ -209,7 +213,7 @@ export async function POST(req: Request) {
     const receipt = await prisma.receipt.create({
       data: {
         userId: user.id,
-        fileUrl: `/uploads/${safeFileName}`,
+        fileUrl: safeFileName,
         date: date ? date : new Date(),
         tags: {
           connect: tagRecords.map((tag) => ({ id: tag.id })),
@@ -235,5 +239,59 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Wystąpił błąd podczas przetwarzania pliku" }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const login = await getSession();
+    if (!login) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const searchParams = req.nextUrl.searchParams;
+    const fileUrl = searchParams.get("id");
+
+    if (!fileUrl) {
+      return NextResponse.json({ error: "Plik nie znaleziony lub brak dostępu" }, { status: 404 });
+    }
+
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const filePath = path.join(uploadsDir, fileUrl);
+
+    let stats;
+    try {
+      stats = await statPromise(filePath);
+    } catch (err) {
+      console.error(`File not found at path: ${filePath}`, err);
+      return NextResponse.json({ error: "Plik nie istnieje" }, { status: 404 });
+    }
+
+    if (!stats.isFile()) {
+      return NextResponse.json({ error: "To nie jest plik" }, { status: 404 });
+    }
+
+    const fileStream = createReadStream(filePath);
+
+    const extension = path.extname(fileUrl).toLowerCase();
+    let contentType = "application/octet-stream"; // Domyślny typ
+
+    if (extension === ".pdf") contentType = "application/pdf";
+    else if (extension === ".jpg" || extension === ".jpeg") contentType = "image/jpeg";
+    else if (extension === ".png") contentType = "image/png";
+    else if (extension === ".webp") contentType = "image/webp";
+    else if (extension === ".heic") contentType = "image/heic";
+    else if (extension === ".heif") contentType = "image/heif";
+
+    return new NextResponse(fileStream as unknown as ReadableStream, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Length": stats.size.toString(),
+      },
+    });
+  } catch (error) {
+    console.error("Download error:", error);
+    return NextResponse.json({ error: "Wystąpił błąd podczas pobierania pliku" }, { status: 500 });
   }
 }

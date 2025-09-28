@@ -10,7 +10,7 @@ export interface Item {
 
 export interface Receipt {
   id: string;
-  fileUrl?: string;
+  fileUrl: string;
   date: string;
   tags: Tag[];
   items: Item[];
