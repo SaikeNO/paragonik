@@ -1,11 +1,10 @@
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const login = cookieStore.get("login")?.value;
+    const login = await getSession();
     if (!login) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

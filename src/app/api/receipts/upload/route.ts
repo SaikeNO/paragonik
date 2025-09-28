@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { getSession } from "@/lib/auth";
 
 // Konfiguracja walidacji plików
 const FILE_CONFIG = {
@@ -103,8 +103,7 @@ async function validateFileContent(buffer: Buffer, mimeType: string): Promise<{ 
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const login = cookieStore.get("login")?.value;
+    const login = await getSession();
     if (!login) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = await prisma.user.findUnique({ where: { login } });

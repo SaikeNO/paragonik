@@ -1,17 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { unlink } from "fs/promises";
 import path from "path";
 import { Tag } from "@/interfaces/interfaces";
+import { getSession } from "@/lib/auth";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   try {
     // Sprawdź autoryzację
-    const cookieStore = await cookies();
-    const login = cookieStore.get("login")?.value;
+    const login = await getSession();
     if (!login) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
