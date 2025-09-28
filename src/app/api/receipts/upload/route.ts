@@ -54,9 +54,19 @@ export async function POST(req: Request) {
 
   const tagRecords = await Promise.all(
     tags.map(async (tagName) => {
-      let tag = await prisma.tag.findUnique({ where: { name: tagName } });
+      let tag = await prisma.tag.findFirst({
+        where: {
+          name: tagName,
+          userId: user.id,
+        },
+      });
       if (!tag) {
-        tag = await prisma.tag.create({ data: { name: tagName } });
+        tag = await prisma.tag.create({
+          data: {
+            name: tagName,
+            userId: user.id,
+          },
+        });
       }
       return tag;
     })
@@ -66,7 +76,7 @@ export async function POST(req: Request) {
     data: {
       userId: user.id,
       fileUrl: `/uploads/${file.name}`,
-      date: date ? date : undefined,
+      date: date ? date : new Date(),
       tags: {
         connect: tagRecords.map((tag) => ({ id: tag.id })),
       },

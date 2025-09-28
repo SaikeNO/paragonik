@@ -8,9 +8,10 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(cuid())
-  login    String   @unique
+  id       String    @id @default(cuid())
+  login    String    @unique
   receipts Receipt[]
+  tags     Tag[]
 }
 
 model Receipt {
@@ -32,7 +33,11 @@ model Item {
 }
 
 model Tag {
-  id       String     @id @default(cuid())
-  name     String     @unique
-  receipts Receipt[]  @relation("ReceiptTags")
+  id       String    @id @default(cuid())
+  name     String
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  receipts Receipt[] @relation("ReceiptTags")
+  
+  @@unique([name, userId])
 }

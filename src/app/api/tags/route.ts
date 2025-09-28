@@ -1,7 +1,28 @@
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const tags = await prisma.tag.findMany();
-  return NextResponse.json({ tags });
+  try {
+    const cookieStore = await cookies();
+    const login = cookieStore.get("login")?.value;
+    if (!login) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({ where: { login } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const tags = await prisma.tag?.findMany({
+      where: { userId: user.id },
+      orderBy: { name: "asc" },
+    });
+
+    return NextResponse.json({ tags });
+  } catch (error) {
+    console.error("Błąd podczas pobierania tagów:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
