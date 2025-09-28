@@ -3,18 +3,45 @@
 import { useState, useEffect } from "react";
 import Fuse from "fuse.js";
 import { Receipt, Tag } from "@/interfaces/interfaces";
-import { Search, Filter, X, Tag as TagIcon, ChevronDown, ChevronUp, Sparkles, Check } from "lucide-react";
+import {
+  Search,
+  Filter,
+  X,
+  Tag as TagIcon,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  Check,
+  ArrowUpDown,
+  Calendar,
+  FileText,
+} from "lucide-react";
 
 interface SearchBarProps {
   receipts: Receipt[];
   onFilter: (filtered: Receipt[]) => void;
 }
 
+type SortOption = {
+  value: string;
+  label: string;
+  icon: React.ReactNode;
+};
+
+const SORT_OPTIONS: SortOption[] = [
+  { value: "date-desc", label: "Data: od najnowszych", icon: <Calendar className="w-4 h-4" /> },
+  { value: "date-asc", label: "Data: od najstarszych", icon: <Calendar className="w-4 h-4" /> },
+  { value: "items-desc", label: "Liczba produktów: malejąco", icon: <FileText className="w-4 h-4" /> },
+  { value: "items-asc", label: "Liczba produktów: rosnąco", icon: <FileText className="w-4 h-4" /> },
+];
+
 export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showTagFilter, setShowTagFilter] = useState(false);
+  const [showSortOptions, setShowSortOptions] = useState(false);
+  const [sortBy, setSortBy] = useState("date-desc");
 
   useEffect(() => {
     async function fetchTags() {
@@ -30,6 +57,23 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
     }
     fetchTags();
   }, []);
+
+  const sortReceipts = (receipts: Receipt[], sortOption: string): Receipt[] => {
+    const sorted = [...receipts];
+
+    switch (sortOption) {
+      case "date-desc":
+        return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      case "date-asc":
+        return sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      case "items-desc":
+        return sorted.sort((a, b) => (b.items?.length || 0) - (a.items?.length || 0));
+      case "items-asc":
+        return sorted.sort((a, b) => (a.items?.length || 0) - (b.items?.length || 0));
+      default:
+        return sorted;
+    }
+  };
 
   useEffect(() => {
     let filtered = receipts;
@@ -50,8 +94,11 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
       filtered = fuse.search(query).map((r) => r.item);
     }
 
+    // Sortowanie wyników
+    filtered = sortReceipts(filtered, sortBy);
+
     onFilter(filtered);
-  }, [query, selectedTags, receipts, onFilter]);
+  }, [query, selectedTags, receipts, sortBy, onFilter]);
 
   function toggleTag(tagName: string) {
     if (selectedTags.includes(tagName)) {
@@ -64,11 +111,14 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
   function clearAllFilters() {
     setQuery("");
     setSelectedTags([]);
+    setSortBy("date-desc");
   }
 
   function getTagCount(tagName: string) {
     return receipts.filter((receipt) => receipt.tags?.some((tag) => tag.name === tagName)).length;
   }
+
+  const currentSortOption = SORT_OPTIONS.find((option) => option.value === sortBy);
 
   return (
     <div className="space-y-4">
@@ -91,12 +141,14 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
           </button>
         )}
       </div>
+
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex gap-2 grow">
+          {/* Tag Filter Button */}
           <button
             type="button"
             onClick={() => setShowTagFilter(!showTagFilter)}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl border font-medium transition-all grow ${
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border font-medium transition-all flex-1 ${
               showTagFilter
                 ? "bg-blue-500 text-white border-blue-500 shadow-lg"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
@@ -114,20 +166,58 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
             {showTagFilter ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
 
-          {(query || selectedTags.length > 0) && (
-            <button
-              type="button"
-              onClick={clearAllFilters}
-              className="flex items-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors shadow-lg hover:shadow-xl"
-            >
-              <X className="w-4 h-4" />
-              Wyczyść
-            </button>
-          )}
+          {/* Sort Button */}
+          <button
+            type="button"
+            onClick={() => setShowSortOptions(!showSortOptions)}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border font-medium transition-all flex-1 ${
+              showSortOptions
+                ? "bg-purple-500 text-white border-purple-500 shadow-lg"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+            }`}
+          >
+            <ArrowUpDown className="w-4 h-4" />
+            <div className="grow text-left">Sortowanie</div>
+            {showSortOptions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
         </div>
       </div>
 
-      {/* Active Filters */}
+      {(query || selectedTags.length > 0 || sortBy !== "date-desc") && (
+        <button
+          type="button"
+          onClick={clearAllFilters}
+          className="flex items-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors shadow-lg hover:shadow-xl"
+        >
+          <X className="w-4 h-4" />
+          Wyczyść
+        </button>
+      )}
+
+      {/* Current Sort Display */}
+      {sortBy !== "date-desc" && (
+        <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+          <div className="flex items-center gap-2 mb-2">
+            <ArrowUpDown className="w-4 h-4 text-purple-600" />
+            <span className="text-sm font-medium text-purple-800">Aktualne sortowanie:</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500 text-white rounded-full text-sm font-medium shadow-sm">
+              {currentSortOption?.icon}
+              {currentSortOption?.label}
+              <button
+                type="button"
+                onClick={() => setSortBy("date-desc")}
+                className="text-purple-200 hover:text-white transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Active Tag Filters */}
       {selectedTags.length > 0 && (
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
           <div className="flex items-center gap-2 mb-3">
@@ -151,6 +241,73 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
                 </button>
               </span>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sort Options Panel */}
+      {showSortOptions && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <ArrowUpDown className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Sortuj paragony</h3>
+                  <p className="text-sm text-gray-600">Wybierz sposób sortowania</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSortOptions(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-3">
+              {SORT_OPTIONS.map((option) => {
+                const isSelected = sortBy === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setSortBy(option.value);
+                      setShowSortOptions(false);
+                    }}
+                    className={`group p-4 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? "bg-purple-500 text-white border-purple-500 shadow-lg"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50 hover:border-purple-300 hover:shadow-md"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-lg ${
+                          isSelected ? "bg-purple-400" : "bg-gray-100 group-hover:bg-purple-100"
+                        }`}
+                      >
+                        {option.icon}
+                      </div>
+                      <div>
+                        <p className="font-medium">{option.label}</p>
+                      </div>
+                      {isSelected && (
+                        <div className="ml-auto">
+                          <Check className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -186,7 +343,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2  gap-3 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   {availableTags.map((tag) => {
                     const count = getTagCount(tag.name);
                     const isSelected = selectedTags.includes(tag.name);
@@ -199,7 +356,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
                         disabled={count === 0}
                         className={`group relative p-4 rounded-xl border text-left transition-all ${
                           isSelected
-                            ? "bg-blue-500 text-white border-blue-500 shadow-lg "
+                            ? "bg-blue-500 text-white border-blue-500 shadow-lg"
                             : count === 0
                             ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
                             : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300 hover:shadow-md"
@@ -230,25 +387,6 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
                       </button>
                     );
                   })}
-                </div>
-
-                <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTags(availableTags.map((tag) => tag.name))}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                  >
-                    <Check className="w-4 h-4" />
-                    Zaznacz wszystkie
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTags([])}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                  >
-                    <X className="w-4 h-4" />
-                    Odznacz wszystkie
-                  </button>
                 </div>
               </>
             )}
