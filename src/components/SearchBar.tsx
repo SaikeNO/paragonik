@@ -248,7 +248,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
       {/* Sort Options Panel */}
       {showSortOptions && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-gray-200">
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-3 py-3 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white rounded-lg shadow-sm">
@@ -268,7 +268,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-3">
             <div className="grid grid-cols-1 gap-3">
               {SORT_OPTIONS.map((option) => {
                 const isSelected = sortBy === option.value;
@@ -315,7 +315,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
       {/* Tag Filter Panel */}
       {showTagFilter && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-3 py-3 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white rounded-lg shadow-sm">
@@ -335,7 +335,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-3">
             {availableTags.length === 0 ? (
               <div className="text-center py-8">
                 <TagIcon className="w-8 h-8 text-gray-300 mx-auto mb-3" />
@@ -354,7 +354,7 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
                         type="button"
                         onClick={() => toggleTag(tag.name)}
                         disabled={count === 0}
-                        className={`group relative p-4 rounded-xl border text-left transition-all ${
+                        className={`group relative p-3 rounded-xl border text-left transition-all ${
                           isSelected
                             ? "bg-blue-500 text-white border-blue-500 shadow-lg"
                             : count === 0
