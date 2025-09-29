@@ -11,11 +11,14 @@ datasource db {
 }
 
 model User {
-  id       String    @id @default(cuid())
-  login    String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  login               String    @unique
+  email               String    @unique
+  password            String
+  emailVerified       Boolean   @default(false)
+  verificationToken   String?   @unique
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   
   sessions Session[]
   receipts Receipt[]

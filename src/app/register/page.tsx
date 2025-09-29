@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, ArrowRight, AlertCircle, Receipt, Shield, Lock } from "lucide-react";
+import { User, ArrowRight, AlertCircle, Receipt, Shield, Lock, Mail, CheckCircle } from "lucide-react";
 import api from "@/lib/axios";
 import axios from "axios";
 
 export default function RegisterPage() {
   const [login, setLogin] = useState("");
+  const [email, setEmail] = useState("");
+  const [success, setSuccess] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -19,10 +21,10 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const res = await api.post("/auth/register", { login, password });
+      const res = await api.post("/auth/register", { login, password, email });
 
-      if (res.status === 200) {
-        router.push("/");
+      if (res.status === 201) {
+        setSuccess(res.data.message);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -77,6 +79,26 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Adres e-mail
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="Wpisz swój adres e-mail"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
               {/* Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -115,6 +137,13 @@ export default function RegisterPage() {
                   </>
                 )}
               </button>
+
+              {success && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-green-600">
+                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm">{success}</span>
+                </div>
+              )}
 
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600">

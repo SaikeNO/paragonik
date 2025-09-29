@@ -1,14 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import { randomBytes } from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { login, password } = await req.json();
+    const { login, password, email } = await req.json();
 
     // Walidacja danych wejściowych
-    if (!login || !password) {
-      return NextResponse.json({ error: "Login i hasło są wymagane" }, { status: 400 });
+    if (!login || !password || !email) {
+      return NextResponse.json({ error: "Login, hasło i email są wymagane" }, { status: 400 });
     }
 
     // Walidacja loginu
@@ -29,7 +31,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Hasło jest zbyt długie" }, { status: 400 });
     }
 
-    // Sprawdzenie siły hasła
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
@@ -47,26 +48,62 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Ta nazwa użytkownika jest już zajęta" }, { status: 409 });
     }
 
-    // Hashowanie hasła (bcrypt automatycznie generuje salt)
+    const existingEmail = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingEmail) {
+      return NextResponse.json({ error: "Ten adres e-mail jest już zajęty" }, { status: 409 });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Utworzenie użytkownika
+    // Generowanie tokena weryfikacyjnego
+    const verificationToken = randomBytes(32).toString("hex");
+
+    // Utworzenie użytkownika z tokenem weryfikacyjnym
     const user = await prisma.user.create({
       data: {
         login,
         password: hashedPassword,
+        email,
+        emailVerified: false,
+        verificationToken,
       },
       select: {
         id: true,
         login: true,
+        email: true,
         createdAt: true,
       },
+    });
+
+    // Konfiguracja NodeMailer
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify-email?token=${verificationToken}`;
+
+    // Wysyłka maila weryfikacyjnego
+    await transporter.sendMail({
+      from: '"Paragonik"',
+      to: user.email,
+      subject: "[Paragonik] Potwierdź swój adres e-mail",
+      html: `<p>Witaj ${user.login},</p>
+             <p>Kliknij poniższy link, aby zweryfikować swoje konto:</p>
+             <a href="${verificationUrl}">${verificationUrl}</a>`,
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Konto zostało utworzone pomyślnie",
+        message: "Konto zostało utworzone. Sprawdź maila, aby je zweryfikować.",
         user,
       },
       { status: 201 }

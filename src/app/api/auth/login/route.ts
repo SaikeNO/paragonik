@@ -51,6 +51,7 @@ export async function POST(req: Request) {
         id: true,
         login: true,
         password: true,
+        emailVerified: true,
       },
     });
 
@@ -67,6 +68,13 @@ export async function POST(req: Request) {
 
     if (!isPasswordValid) {
       return NextResponse.json({ error: "Nieprawidłowy login lub hasło" }, { status: 401 });
+    }
+
+    if (user.emailVerified === false) {
+      return NextResponse.json(
+        { error: "Email nie został zweryfikowany. Sprawdź swoją skrzynkę pocztową." },
+        { status: 403 }
+      );
     }
 
     // Wyczyszczenie rate limitu po udanym logowaniu
