@@ -16,6 +16,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { DatePicker } from "@/components/DatePicker";
+import api from "@/lib/axios";
+import axios from "axios";
 
 export default function NewReceiptPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -29,19 +31,12 @@ export default function NewReceiptPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  // Pobierz dostępne tagi przy załadowaniu komponentu
   useEffect(() => {
     async function fetchTags() {
-      try {
-        const res = await fetch("/api/tags");
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableTags(data.tags);
-        }
-      } catch (error) {
-        console.error("Błąd podczas pobierania tagów:", error);
-      }
+      const res = await api.get("/tags");
+      setAvailableTags(res.data.tags);
     }
+
     fetchTags();
   }, []);
 
@@ -100,19 +95,19 @@ export default function NewReceiptPage() {
     if (date) formData.append("date", date);
 
     try {
-      const res = await fetch("/api/receipts/upload", {
-        method: "POST",
-        body: formData,
+      await api.post("/receipts/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      if (res.ok) {
-        router.push("/receipts");
+      router.push("/receipts");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.error || "Wystąpił błąd");
       } else {
-        const data = await res.json();
-        setError(data.error || "Wystąpił błąd");
+        setError("Wystąpił błąd podczas wysyłania");
       }
-    } catch {
-      setError("Wystąpił błąd podczas wysyłania");
     } finally {
       setIsSubmitting(false);
     }

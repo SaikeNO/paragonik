@@ -16,6 +16,7 @@ import {
   Calendar,
   FileText,
 } from "lucide-react";
+import api from "@/lib/axios";
 
 interface SearchBarProps {
   receipts: Receipt[];
@@ -45,16 +46,10 @@ export default function SearchBar({ receipts, onFilter }: SearchBarProps) {
 
   useEffect(() => {
     async function fetchTags() {
-      try {
-        const res = await fetch("/api/tags");
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableTags(data.tags);
-        }
-      } catch (error) {
-        console.error("Błąd podczas pobierania tagów:", error);
-      }
+      const res = await api.get("/tags");
+      setAvailableTags(res.data.tags);
     }
+
     fetchTags();
   }, []);
 

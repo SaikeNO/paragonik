@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, ArrowRight, AlertCircle, Receipt, Shield } from "lucide-react";
+import { User, ArrowRight, AlertCircle, Receipt, Shield, Lock } from "lucide-react";
+import api from "@/lib/axios";
+import axios from "axios";
 
 export default function RegisterPage() {
   const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -16,20 +19,18 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login }),
-      });
+      const res = await api.post("/auth/register", { login, password });
 
-      if (res.ok) {
+      if (res.status === 200) {
         router.push("/");
-      } else {
-        const data = await res.json();
-        setError(data.error || "Wystąpił błąd");
       }
-    } catch {
-      setError("Błąd połączenia z serwerem");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data;
+        setError(data?.error || "Wystąpił błąd");
+      } else {
+        setError("Błąd połączenia z serwerem");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +57,7 @@ export default function RegisterPage() {
 
           <div className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Login */}
               <div>
                 <label htmlFor="login" className="block text-sm font-medium text-gray-700 mb-2">
                   Nazwa użytkownika
@@ -75,10 +77,31 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Hasło
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="Wpisz hasło"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Submit button */}
               <button
                 type="submit"
-                disabled={isLoading || !login.trim()}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] disabled:transform-none"
+                disabled={isLoading || !login.trim() || !password.trim()}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform disabled:transform-none"
               >
                 {isLoading ? (
                   <>

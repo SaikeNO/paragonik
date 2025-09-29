@@ -4,12 +4,12 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const login = await getSession();
-    if (!login) {
+    const userId = await getSession();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({ where: { login } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

@@ -107,10 +107,10 @@ async function validateFileContent(buffer: Buffer, mimeType: string): Promise<{ 
 
 export async function POST(req: Request) {
   try {
-    const login = await getSession();
-    if (!login) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getSession();
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const user = await prisma.user.findUnique({ where: { login } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const formData = await req.formData();
@@ -244,8 +244,8 @@ export async function POST(req: Request) {
 
 export async function GET(req: NextRequest) {
   try {
-    const login = await getSession();
-    if (!login) {
+    const userId = await getSession();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

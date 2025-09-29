@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { Plus, LogOut, Receipt as ReceiptIcon } from "lucide-react";
+import api from "@/lib/axios";
 
 export default function Header() {
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await api.post("/auth/logout");
       router.push("/");
     } catch (error) {
       console.error("Błąd podczas wylogowywania:", error);

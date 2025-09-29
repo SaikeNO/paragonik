@@ -3,6 +3,7 @@ import { Calendar, FileText, Tag, Trash2, Eye } from "lucide-react";
 import { useState } from "react";
 import FilePreviewModal from "./FilePreviewModal";
 import WarrantyStatus from "./WarrantyStatus";
+import api from "@/lib/axios";
 
 export default function ReceiptCard({ receipt, onDelete }: { receipt: Receipt; onDelete: () => void }) {
   const [showPreview, setShowPreview] = useState(false);
@@ -13,8 +14,8 @@ export default function ReceiptCard({ receipt, onDelete }: { receipt: Receipt; o
 
   async function handleDelete() {
     if (!confirm("Czy na pewno chcesz usunąć ten paragon?")) return;
-    const res = await fetch(`/api/receipts/${receipt.id}`, { method: "DELETE" });
-    if (res.ok) {
+    const res = await api.delete(`/receipts/${receipt.id}`);
+    if (res.status === 200) {
       onDelete();
     }
   }

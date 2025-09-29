@@ -9,18 +9,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
 
   try {
-    // Sprawdź autoryzację
-    const login = await getSession();
-    if (!login) {
+    const userId = await getSession();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({ where: { login } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Znajdź paragon z wszystkimi relacjami
     const receipt = await prisma.receipt.findUnique({
       where: { id },
       include: {

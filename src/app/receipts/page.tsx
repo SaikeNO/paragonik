@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Plus, Receipt as Search, Filter, Menu, X } from "lucide-react";
 import Header from "@/components/Header";
+import api from "@/lib/axios";
 
 export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
@@ -19,12 +20,9 @@ export default function ReceiptsPage() {
   const fetchReceipts = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/receipts/search");
-      const data = await res.json();
-      setReceipts(data.receipts);
-      setFiltered(data.receipts);
-    } catch (error) {
-      console.error("Błąd podczas pobierania paragonów:", error);
+      const res = await api.get("/receipts/search");
+      setReceipts(res.data.receipts);
+      setFiltered(res.data.receipts);
     } finally {
       setIsLoading(false);
     }

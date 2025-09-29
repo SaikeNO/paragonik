@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, LogIn, AlertCircle, Receipt, UserPlus, Eye } from "lucide-react";
+import { User, LogIn, AlertCircle, Receipt, UserPlus, Eye, Lock } from "lucide-react";
+import api from "@/lib/axios";
+import axios from "axios";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -16,20 +19,18 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ login }),
-        headers: { "Content-Type": "application/json" },
+      await api.post("/auth/login", {
+        login,
+        password,
       });
 
-      if (res.ok) {
-        window.location.href = "/receipts";
+      window.location.href = "/receipts";
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.error || "Wystąpił błąd");
       } else {
-        const data = await res.json();
-        setError(data.error || "Wystąpił błąd");
+        setError("Błąd połączenia z serwerem");
       }
-    } catch {
-      setError("Błąd połączenia z serwerem");
     } finally {
       setIsLoading(false);
     }
@@ -115,6 +116,25 @@ export default function LoginPage() {
                       placeholder="Wpisz swoją nazwę użytkownika"
                       value={login}
                       onChange={(e) => setLogin(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hasło
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      id="password"
+                      type="password"
+                      placeholder="Wpisz hasło"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                       required
                       disabled={isLoading}
