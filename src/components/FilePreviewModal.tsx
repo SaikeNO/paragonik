@@ -76,6 +76,8 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, title }: Fi
     };
   }, [isOpen, handleClose]);
 
+  console.log(isMobile);
+
   // Handle download
   const handleDownload = async () => {
     try {
@@ -119,11 +121,7 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, title }: Fi
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-6xl max-h-[100vh] sm:max-h-[95vh] w-full flex flex-col overflow-hidden sm:m-4">
         {/* Header modala */}
-        <div
-          className={`flex items-center justify-between p-3 sm:p-4 border-b bg-gray-50 transition-all duration-300 ${
-            !isMobile ? "translate-y-0" : "-translate-y-full"
-          }`}
-        >
+        <div className={`flex items-center justify-between p-3 sm:p-4 border-b bg-gray-50 transition-all duration-300`}>
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
             <h3 className="text-sm sm:text-lg font-semibold text-gray-800 truncate">{title || "Podgląd pliku"}</h3>
@@ -216,11 +214,7 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, title }: Fi
         </div>
 
         {/* Footer */}
-        <div
-          className={`p-3 sm:p-4 bg-gray-50 border-t transition-all duration-300 ${
-            !isMobile ? "translate-y-0" : "translate-y-full"
-          }`}
-        >
+        <div className={`p-3 sm:p-4 bg-gray-50 border-t transition-all duration-300`}>
           <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600">
             <div className="flex items-center gap-4">
               <span>Typ: {fileType.toUpperCase()}</span>
