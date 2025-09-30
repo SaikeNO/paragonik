@@ -8,9 +8,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (typeof window !== "undefined") {
-      if (window.location.pathname !== "/") {
+      if (window.location.pathname !== "/login") {
         if (error.response?.status === 401) {
-          window.location.href = "/";
+          window.location.href = "/receipts";
         }
       }
     }
