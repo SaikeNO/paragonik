@@ -34,9 +34,9 @@ async function extendSession(token: string, userId: string, cookieStore: Readonl
   });
 
   cookieStore.set("session", token, {
-    // httpOnly: true,
-    // secure: process.env.NODE_ENV === "production",
-    // sameSite: "strict",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 dni
   });
@@ -57,9 +57,9 @@ export async function setSession(userId: string) {
 
   // ustaw bezpieczne cookie
   cookieStore.set("session", token, {
-    // httpOnly: true,
-    // secure: process.env.NODE_ENV === "production",
-    // sameSite: "strict",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });
