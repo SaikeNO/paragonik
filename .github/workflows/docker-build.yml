@@ -49,3 +49,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to remote server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            sudo docker stop paragonik || true
+            sudo docker rm paragonik || true
+            sudo docker image prune -f -a || true
+            sudo docker run --log-opt max-size=10m --log-opt max-file=3 -d --name paragonik -p 3000:3000 -v "/home/ubuntu/paragonik/database:/app/database" -v "/home/ubuntu/paragonik/uploads:/app/public/uploads" -e DATABASE_URL="${{ secrets.DATABASE_URL }}" -e SMTP_HOST="${{ secrets.SMTP_HOST }}" -e SMTP_PORT="${{ secrets.SMTP_PORT }}" -e SMTP_USER="${{ secrets.SMTP_USER }}" -e SMTP_PASS="${{ secrets.SMTP_PASS }}" -e NEXT_PUBLIC_BASE_URL="${{ secrets.NEXT_PUBLIC_BASE_URL }}" ghcr.io/saikeno/paragonik:${{ steps.meta.outputs.version }}
