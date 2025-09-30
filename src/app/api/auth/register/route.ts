@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/verify-email?token=${verificationToken}`;
 
     // Wysyłka maila weryfikacyjnego
     await transporter.sendMail({
